@@ -24,7 +24,7 @@ AND B.DatePublished < '5/15/1983'
 
 --Q3
 
-SELECT TOP 5
+SELECT TOP 5 with ties P.PublisherID,COUNT(B.BookID) AS NumOfBook
 FROM tblPUBLISHER P 
 	JOIN tblBOOK B ON P.PublisherID = B.PublisherID
 	JOIN tblGENRE G ON G.GenrelID = B.GenrelID 
@@ -33,25 +33,27 @@ FROM tblPUBLISHER P
 WHERE G.GenrelName = 'non-fiction biographies'
 AND C.CountryName != 'European'
 AND YEAR(B.DatePublished) BETWEEN 1942 AND 2005
+GROUP BY P.PublisherID
+ORDER BY COUNT(B.BookID) DESC
 
 --Q4
 
-SELECT G.GenrelID
+SELECT G.GenrelID, COUNT(G.BookID) AS NumOfBook
 FROM tblGENRE G 
 	JOIN tblBOOK B ON B.GenrelID = G.GenrelID
 WHERE B.DatePublished > (GETDATE()-365.25*5)
 GROUP BY G.GenrelID 
-WHERE COUNT(BookID) > 23
+WHERE COUNT(B.BookID) > 23
 
 --Q5
 
-SELECT M.MemberID 
+SELECT TOP 5 M.MemberID 
 FROM tblMEMBER M
 	JOIN tblREGISTRATION R ON R.MemberID = M.MemberID
 	JOIN tblROLE RO ON R.RoleID = RO.RoleID
 	JOIN tblEVENT E ON E.EventID = R.EventID 
 	JOIN tblEVENT_TYPE ET ON E.EventTypeID = ET.EventTypeID
-WHERE ET.EventTypeName = 'Standard Book Club'
+WHERE ET.EventTypeName = 'Standard Book Club Meeting'
 AND RO.RoleName = 'Host'
 AND E.EvemtDate > GETDATE - 3*365.25
 GROUP BY M.MemberID
@@ -59,17 +61,17 @@ ORDER BY COUNT(E.EventID) DESC
 
 --Q6
 
-SELECT *
+SELECT TOP 1 *
 FROM tblEVENT E 
 	JOIN tblEVENT_TYPE ET ON ET.EventTypeID = E.EventTypeID 
 	JOIN tblLOCATION L ON E.LocationID = L.LocationID
-	JOIN tblASSIGNMENT A ON E.AssignmentID = A.AssignmentID 
+	JOIN tblLOCATION_TYPE LT ON LC.LocationTypeID = L.LocationID
 	JOIN tblREGISTRATION R ON R.EventID = E.EventID 
 	JOIN tblROLE RO ON RO.RoleID = R.RoleId 
 	JOIN tblMEMBER M ON R.MemberID = M.MemberID 
 WHERE RO.RoleName = 'organizer'
 AND E.EventTypeName = 'Annual Holiday Celebration'
-AND L.LocationName = 'Retirement Community'
+AND LC.LocationTypeName = 'Retirement Community'
 AND E.AssignmentID IS NULL
 ORDER BY M.BirthDate DESC
 
@@ -120,7 +122,8 @@ BEGIN
 				JOIN tblROLE RO ON RO.RoleID = R.RoleID 
 				JOIN tblEVENT E ON E.EventID = R.EventID
 				JOIN tblLOCATION L ON E.LocationID = L.LocationID
-				WHERE L.LocationName = 'Restaurant'
+		  		JOIN tblLOCATION_TYPE LT ON LT.LocationTypeID = L.LocationTypeID
+				WHERE LT.LocationTypeName = 'Restaurant'
 				AND M.BirthDate > GetDate() - 21*365.25
 				AND E.EventTypeName = 'Annual Holiday Celebration'
 				AND RO.RoleName = 'host')
@@ -130,12 +133,15 @@ END
 GO
 
 GO
-ALTER TABLE tblEVENT 
+ALTER TABLE tblREGISTRATION 
 ADD CONSTRAINT CK_undanres
 CHECK (dbo.fnundanres() = 0)
 GO
 
-SELECT TOP 4 *
-FROM tblASSIGNMENT A 
-	JOIN tblBOOK B ON A.BookID = B.BookID
-WHERE A.AnnounceDate > 6.1
+SELECT TOP 4 B.BookID, COUNT(A.BookID) AS NumofTimes
+ FROM tblBOOK B
+ 	JOIN tblASSIGNMENT A ON B.BookID = A.BookID
+ WHERE (SELECT YEAR(A.AnnounceDate)) >= 1997
+ AND	  (SELECT Month(A.AnnounceDate)) BETWEEN 6 AND 9
+ GROUP BY B.BookID
+ ORDER BY COUNT(A.BookID) DESC
