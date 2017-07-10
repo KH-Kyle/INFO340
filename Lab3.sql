@@ -32,7 +32,7 @@ FROM tblPUBLISHER P
 	JOIN tblCOUNTRY C ON C.COuntryID = A.CountryID
 WHERE G.GenrelName = 'non-fiction biographies'
 AND C.CountryName != 'European'
-AND B.[YEAR] BETWEEN 1942 AND 2005
+AND YEAR(B.DatePublished) BETWEEN 1942 AND 2005
 
 --Q4
 
