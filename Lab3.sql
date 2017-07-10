@@ -71,7 +71,7 @@ WHERE RO.RoleName = 'organizer'
 AND E.EventTypeName = 'Annual Holiday Celebration'
 AND L.LocationName = 'Retirement Community'
 AND E.AssignmentID IS NULL
-ORDER BY M.BirthDate ASC
+ORDER BY M.BirthDate DESC
 
 --Q7
 CREATE PROCEDURE uspProcessEvent
