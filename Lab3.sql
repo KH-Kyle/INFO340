@@ -30,8 +30,9 @@ FROM tblPUBLISHER P
 	JOIN tblGENRE G ON G.GenrelID = B.GenrelID 
 	JOIN tblAUTHOR A ON A.AuthorID = B.AuthorID
 	JOIN tblCOUNTRY C ON C.COuntryID = A.CountryID
+	JOIN tblREGION RE ON RE.RegionID = C.RegionID
 WHERE G.GenrelName = 'non-fiction biographies'
-AND C.CountryName != 'European'
+AND RE.RegionName != 'European'
 AND YEAR(B.DatePublished) BETWEEN 1942 AND 2005
 
 --Q4
